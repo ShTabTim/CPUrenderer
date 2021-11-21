@@ -14,7 +14,7 @@ class MainRenderer : public ShWinRendCPU {
         r += dt;
         db.Fill(0, 0, db.GetW(), db.GetH(), { 30, 57, 48 });
 
-        db.FillCircle(200+40.0f*sin(r), 200 + 40.0f * cos(r), 200, { 200, 20, 240 });
+        db.FillCircle(200+40.0f*sin(r), 200 + 40.0f * cos(r), 100 + 100.0f * sin(r), { 200, 20, 240 });
 
         db.FillCircle(50, 50, 30, { 20, 200, 240 });
         db.FillCircle(50, 100, 30, { 20, 200, 20 });
