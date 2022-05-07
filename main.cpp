@@ -1,43 +1,33 @@
 #include <Windows.h>
-#include "FundLibs/ShRendCPU/ShWin.h"
+#include "FundLibs/sh_rend_cpu/sh_win.h"
 
-#define ScrWW 512
-#define ScrHH 512
-
-class MainRenderer : public ShWinRendCPU {
-    bool initSim() {
+class MainRenderer : public sh_dwaw_win_cpu {
+    bool sh_init() {
         AppName = L"CPU3dRenderer";
         return true;
     }
-    bool loopSim(float dt) {
+    bool sh_loop(double dt) {
         static float r = 0;
         r += dt;
-        db.Fill(0, 0, db.GetW(), db.GetH(), { 30, 57, 48 });
+        fill_rect(0, 0, get_dr_w(), get_dr_h(), 30, 57, 48);
 
-        db.FillCircle(200+40.0f*sin(r), 200 + 40.0f * cos(r), 100 + 100.0f * sin(r), { 200, 20, 240 });
+        fill_circ(200+40.0f*sin(r), 200 + 40.0f * cos(r), 100 + 100.0f * sin(r), 200, 20, 240);
 
-        db.FillCircle(50, 50, 30, { 20, 200, 240 });
-        db.FillCircle(50, 100, 30, { 20, 200, 20 });
-        db.FillCircle(100, 50, 30, { 200, 200, 240 });
-        db.FillCircle(50, 50, 10, { 20, 20, 240 });
+        fill_circ(50, 50, 30, 20, 200, 240);
+        fill_circ(50, 100, 30, 20, 200, 20);
+        fill_circ(100, 50, 30, 200, 200, 240);
+        fill_circ(50, 50, 10, 20, 20, 240);
 
         return true;
     }
-    bool finitSim() {
+    bool sh_finit() {
         return true;
     }
 };
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam) {
-    if(uiMsg == WM_CLOSE)
-        PostQuitMessage(0);
-    else
-        return DefWindowProc(hWnd, uiMsg, wParam, lParam);
-    return 0;
-}
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR sCmdLine, int iShow) {
 	MainRenderer simulation;
-	if (simulation.init(hInst, ScrWW, ScrHH, WndProc))
-		simulation.Start();
+	if (simulation.init(hInst, 128, 128, 256, 256))
+		simulation.run();
 	return 0;
 }

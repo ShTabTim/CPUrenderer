@@ -1,82 +1,45 @@
-#include "DrawBuffer.h"
+#include "sh_win.h"
 
-color::color(uchar r, uchar g, uchar b) : r(r), g(g), b(b){}
-
-bool DB::init(uint w, uint h){
-	this->w = w;
-	this->h = h;
-	buff = new BYTE[w*h*3];
-	memset(buff, 0, sizeof(BYTE) * w * h * 3);
-
-	memset(&buffInfo, 0, sizeof(BITMAPINFOHEADER));
-
-	buffInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	buffInfo.bmiHeader.biPlanes = 1;
-	buffInfo.bmiHeader.biBitCount = 24;
-	buffInfo.bmiHeader.biCompression = BI_RGB;
-	buffInfo.bmiHeader.biWidth = w;
-	buffInfo.bmiHeader.biHeight= h;
-	return 1;
-}
-DB::~DB() {
-	if (buff != NULL)
-		delete[] buff;
-	buff = NULL;
+void sh_dwaw_win_cpu::dr_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b) { buf[index].r = r; buf[index].g = g; buf[index].b = b; }
+void sh_dwaw_win_cpu::add_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b) { buf[index].r += r; buf[index].g += g; buf[index].b += b; }
+void sh_dwaw_win_cpu::mix_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b, uint8_t a) { buf[index].r = ((255 - a) * buf[index].r + r * a) * 0.00392156f; buf[index].g = ((255 - a) * buf[index].g + g * a) * 0.00392156f; buf[index].b = ((255 - a) * buf[index].g + g * a) * 0.00392156f; }
+void sh_dwaw_win_cpu::clip(int32_t& x, int32_t& y) {
+	x = (x < 0) ? 0 : ((x > w) ? w : x);
+	y = (y < 0) ? 0 : ((y > h) ? h : y);
 }
 
-void DB::OnDrawContextDrawBuffer(HDC *dc) {
-	if (buff != NULL)
-		StretchDIBits(*dc, 0, 0, w, h, 0, 0, w, h, buff, &buffInfo, DIB_RGB_COLORS, SRCCOPY);
+uint8_t* sh_dwaw_win_cpu::get_buf() { return (uint8_t*)buf; }
+uint16_t sh_dwaw_win_cpu::get_w() { return w; }
+uint16_t sh_dwaw_win_cpu::get_h() { return h; }
+
+void sh_dwaw_win_cpu::fill_rect(int32_t x0, int32_t  y0, int32_t x1, int32_t y1, uint8_t r, uint8_t g, uint8_t b) {
+	clip(x0, y0); clip(x1, y1);
+	for (uint32_t x(x1 - x0); x--;)
+		for (uint32_t y(y1 - y0); y--;)
+			draw_pix(x0 + x, y0 + y, r, g, b);
 }
 
-
-BYTE* DB::GetBuffer() { return buff; }
-uint DB::GetW() { return w; }
-uint DB::GetH() { return h; }
-
-
-void DB::DrawCharOnBuffer(size_t index, color col) {
-	index *= 3;
-	buff[index+2] = col.r;
-	buff[index+1] = col.g;
-	buff[index  ] = col.b;
-}
-void DB::Fill(int x1, int y1, int x2, int y2, color col) {
-	Clip(x1, y1);
-	Clip(x2, y2);
-	for (int x = x1; x < x2; x++)
-		for (int y = y1; y < y2; y++)
-			DrawPixel(x, y, col);
-}
-void DB::Clip(int &x, int &y) {
-	if (x < 0) x = 0;
-	if (x > w) x = w;
-	if (y < 0) y = 0;
-	if (y > h) y = h;
-}
-
-void DB::DrawPixel(int x, int y, color col) {
-	if (x >= 0 && x < w && y >= 0 && y < h) {
-		DrawCharOnBuffer(y * w + x, col);
-	}
-}
-void DB::DrawLine(int x1, int y1, int x2, int y2, color col) {
-	int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
-	dx = x2 - x1; dy = y2 - y1;
+void sh_dwaw_win_cpu::draw_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < w && y >= 0 && y < h) dr_in_buf(y * w + x, r, g, b); }
+void sh_dwaw_win_cpu::add_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < w && y >= 0 && y < h) add_in_buf(y * w + x, r, g, b); }
+void sh_dwaw_win_cpu::mix_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) { if (x >= 0 && x < w && y >= 0 && y < h) mix_in_buf(y * w + x, r, g, b, a); }
+void sh_dwaw_win_cpu::draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t r, uint8_t g, uint8_t b) {
+	int32_t x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
+	dx = x1 - x0; dy = y1 - y0;
 	dx1 = abs(dx); dy1 = abs(dy);
 	px = 2 * dy1 - dx1;	py = 2 * dx1 - dy1;
 	if (dy1 <= dx1) {
 		if (dx >= 0) {
-			x = x1; 
-			y = y1; 
-			xe = x2;
-		} else {
-			x = x2;
-			y = y2;
+			x = x0;
+			y = y0;
 			xe = x1;
 		}
+		else {
+			x = x1;
+			y = y1;
+			xe = x0;
+		}
 
-		DrawPixel(x, y, col);
+		draw_pix(x, y, r, g, b);
 
 		for (i = 0; x < xe; i++) {
 			x = x + 1;
@@ -86,20 +49,22 @@ void DB::DrawLine(int x1, int y1, int x2, int y2, color col) {
 				if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) y = y + 1; else y = y - 1;
 				px = px + 2 * (dy1 - dx1);
 			}
-			DrawPixel(x, y, col);
+			draw_pix(x, y, r, g, b);
 		}
-	} else {
+	}
+	else {
 		if (dy >= 0) {
-			x = x1;
-			y = y1;
-			ye = y2;
-		} else {
-			x = x2;
-			y = y2;
+			x = x0;
+			y = y0;
 			ye = y1;
 		}
+		else {
+			x = x1;
+			y = y1;
+			ye = y0;
+		}
 
-		DrawPixel(x, y, col);
+		draw_pix(x, y, r, g, b);
 
 		for (i = 0; y < ye; i++) {
 			y = y + 1;
@@ -109,19 +74,14 @@ void DB::DrawLine(int x1, int y1, int x2, int y2, color col) {
 				if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) x = x + 1; else x = x - 1;
 				py = py + 2 * (dx1 - dy1);
 			}
-			DrawPixel(x, y, col);
+			draw_pix(x, y, r, g, b);
 		}
 	}
 }
 
-void DB::DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, color col) {
-	DrawLine(x1, y1, x2, y2, col);
-	DrawLine(x2, y2, x3, y3, col);
-	DrawLine(x3, y3, x1, y1, col);
-}
-void DB::FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, color col) {
-	auto SWAP = [](int &x, int &y) { int t = x; x = y; y = t; };
-	auto drawline = [&](int sx, int ex, int ny) { for (int i = sx; i <= ex; i++) DrawPixel(i, ny, col); };
+void sh_dwaw_win_cpu::fill_triang(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t r, uint8_t g, uint8_t b) {
+	auto SWAP = [](int& x, int& y) { int t = x; x = y; y = t; };
+	auto drawline = [&](int sx, int ex, int ny) { for (int i = sx; i <= ex; i++) draw_pix(i, ny, r, g, b); };
 
 	int t1x, t2x, y, minx, maxx, t1xp, t2xp;
 	bool changed1 = false;
@@ -255,41 +215,41 @@ next:
 	}
 }
 
-void DB::DrawCircle(int xc, int yc, int r, color col) {
-	int x = 0;
-	int y = r;
-	int p = 3 - 2 * r;
-	if (!r) return;
+void sh_dwaw_win_cpu::draw_circ(int32_t x0, int32_t y0, int32_t rad, uint8_t r, uint8_t g, uint8_t b) {
+	if (!rad) return;
+	int32_t x = 0;
+	int32_t y = rad;
+	int32_t p = 3 - 2 * rad;
 
 	while (y >= x) { // only formulate 1/8 of circle
-		DrawPixel(xc - x, yc - y, col);//upper left left
-		DrawPixel(xc - y, yc - x, col);//upper upper left
-		DrawPixel(xc + y, yc - x, col);//upper upper right
-		DrawPixel(xc + x, yc - y, col);//upper right right
-		DrawPixel(xc - x, yc + y, col);//lower left left
-		DrawPixel(xc - y, yc + x, col);//lower lower left
-		DrawPixel(xc + y, yc + x, col);//lower lower right
-		DrawPixel(xc + x, yc + y, col);//lower right right
+		draw_pix(x0 - x, y0 - y, r, g, b);//upper left left
+		draw_pix(x0 - y, y0 - x, r, g, b);//upper upper left
+		draw_pix(x0 + y, y0 - x, r, g, b);//upper upper right
+		draw_pix(x0 + x, y0 - y, r, g, b);//upper right right
+		draw_pix(x0 - x, y0 + y, r, g, b);//lower left left
+		draw_pix(x0 - y, y0 + x, r, g, b);//lower lower left
+		draw_pix(x0 + y, y0 + x, r, g, b);//lower lower right
+		draw_pix(x0 + x, y0 + y, r, g, b);//lower right right
 		if (p < 0) p += 4 * x++ + 6;
 		else p += 4 * (x++ - y--) + 10;
 	}
 }
-void DB::FillCircle(int xc, int yc, int r, color col) {
-	int x = 0;
-	int y = r;
-	int p = 3 - 2 * r;
+void sh_dwaw_win_cpu::fill_circ(int32_t x0, int32_t y0, int32_t rad, uint8_t r, uint8_t g, uint8_t b) {
+	int32_t x = 0;
+	int32_t y = rad;
+	int32_t p = 3 - 2 * rad;
 	if (!r) return;
 
 	auto drawline = [&](int sx, int ex, int ny) {
-		for (int i = sx; i <= ex; i++)
-			DrawPixel(i, ny, col);
+		for (int32_t i(sx); i <= ex; i++)
+			draw_pix(i, ny, r, g, b);
 	};
 
 	while (y >= x) {
-		drawline(xc - x, xc + x, yc - y);
-		drawline(xc - y, xc + y, yc - x);
-		drawline(xc - x, xc + x, yc + y);
-		drawline(xc - y, xc + y, yc + x);
+		drawline(x0 - x, x0 + x, y0 - y);
+		drawline(x0 - y, x0 + y, y0 - x);
+		drawline(x0 - x, x0 + x, y0 + y);
+		drawline(x0 - y, x0 + y, y0 + x);
 		if (p < 0) p += 4 * x++ + 6;
 		else p += 4 * (x++ - y--) + 10;
 	}
