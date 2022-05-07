@@ -151,15 +151,6 @@ void sh_dwaw_win_cpu::draw_spt_scaled(int32_t x, int32_t y, float scale, sptRGB*
 				}
 	}
 }
-void sh_dwaw_win_cpu::draw_spt(int32_t x, int32_t y, sptRGBA* spt) {
-	//if (!spt) return;
-	uint32_t g;
-	for (uint16_t i(spt->get_w()); i--;)
-		for (uint16_t j(spt->get_h()); j--;) {
-			g = (j * spt->get_w() + i) * 4;
-			mix_pix(x + i, y + j, (spt->get_buf())[g], (spt->get_buf())[g + 1], (spt->get_buf())[g + 2], (spt->get_buf())[g + 3]);
-		}
-}
 void sh_dwaw_win_cpu::draw_spt(int32_t x, int32_t y, int32_t w, int32_t h, sptRGB* spt) {
 	float aw = ((float)spt->get_w()) / ((float)w);
 	float ah = ((float)spt->get_h()) / ((float)h);
@@ -169,6 +160,4 @@ void sh_dwaw_win_cpu::draw_spt(int32_t x, int32_t y, int32_t w, int32_t h, sptRG
 			l = (spt->get_w() * ((uint32_t)(i * aw)) + j * ah) * 3;
 			draw_pix(x + i, y + j, (spt->get_buf())[l], (spt->get_buf())[l + 1], (spt->get_buf())[l + 2]);
 		}
-}
-void sh_dwaw_win_cpu::draw_spt(int32_t x, int32_t y, int32_t w, int32_t h, sptRGBA* spt) {
 }

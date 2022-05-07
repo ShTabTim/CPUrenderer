@@ -139,13 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FundLibs\ShRendCPU\DrawBuffer.cpp" />
-    <ClCompile Include="FundLibs\ShRendCPU\ShWin.cpp" />
+    <ClCompile Include="FundLibs\key\keys.cpp" />
+    <ClCompile Include="FundLibs\sh_rend_cpu\sh_draw.cpp" />
+    <ClCompile Include="FundLibs\sh_rend_cpu\sh_sprite_draw.cpp" />
+    <ClCompile Include="FundLibs\sh_rend_cpu\sh_wind.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FundLibs\ShRendCPU\DrawBuffer.h" />
-    <ClInclude Include="FundLibs\ShRendCPU\ShWin.h" />
+    <ClInclude Include="FundLibs\key\keys.h" />
+    <ClInclude Include="FundLibs\sh_rend_cpu\sh_win.h" />
+    <ClInclude Include="FundLibs\sh_rend_cpu\sprite.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

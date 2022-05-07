@@ -46,7 +46,7 @@ bool sh_dwaw_win_cpu::init(HINSTANCE hInst, uint16_t dr_width, uint16_t dr_heigh
     if (RegisterClassEx(&wcex) == 0)
         return MessageBox(NULL, L"RegisterClassEx failed!", L"hhhh", MB_ERR_INVALID_CHARS), false;
 
-    if ((hWnd = CreateWindow(
+    if ((hwnd = CreateWindow(
 		wcex.lpszClassName,
 		AppName.c_str(), 
 		WS_OVERLAPPEDWINDOW,
@@ -105,9 +105,9 @@ void sh_dwaw_win_cpu::run() {
 			scr_height = cRect.bottom;
 
 			if (buf) {
-				if (scr_w == scr_h)
-					StretchDIBits(dc, 0, 0, scr_w, scr_h, 0, 0, w, h, buf, &buf_info, DIB_RGB_COLORS, SRCCOPY);
-				else if (scr_w > scr_h)
+				if (scr_width == scr_height)
+					StretchDIBits(dc, 0, 0, scr_width, scr_height, 0, 0, dr_width, dr_height, buf, &buf_info, DIB_RGB_COLORS, SRCCOPY);
+				else if (scr_width > scr_height)
 					StretchDIBits(dc, (scr_width - scr_height) * 0.5f, 0, scr_height, scr_height, 0, 0, dr_width, dr_height, buf, &buf_info, DIB_RGB_COLORS, SRCCOPY);
 				else
 					StretchDIBits(dc, 0, (scr_height - scr_width) * 0.5f, scr_width, scr_width, 0, 0, dr_width, dr_height, buf, &buf_info, DIB_RGB_COLORS, SRCCOPY);
@@ -120,7 +120,7 @@ void sh_dwaw_win_cpu::run() {
 	if (buf) delete[] buf;
 	buf = NULL;
 
-	PostMessage(hWnd, WM_DESTROY, 0, 0);
+	PostMessage(hwnd, WM_DESTROY, 0, 0);
 }
 
 HWND sh_dwaw_win_cpu::get_hwnd() const {
@@ -132,17 +132,17 @@ uint16_t sh_dwaw_win_cpu::get_dr_h() const { return dr_height; }
 uint32_t sh_dwaw_win_cpu::get_scr_w() const { return scr_width; }
 uint32_t sh_dwaw_win_cpu::get_scr_h() const { return scr_height; }
 
-uint8_t* sh_dwaw_win_cpu::get_buf() const { return buf; }
+uint8_t* sh_dwaw_win_cpu::get_buf() const { return (uint8_t*)buf; }
 
 void sh_dwaw_win_cpu::show(bool Maximized) {
     RECT dRect, wRect, cRect;
 
     GetWindowRect(GetDesktopWindow(), &dRect);
-    GetWindowRect(hWnd, &wRect);
-    GetClientRect(hWnd, &cRect);
+    GetWindowRect(hwnd, &wRect);
+    GetClientRect(hwnd, &cRect);
 
-    wRect.right += db.GetW() - cRect.right;
-    wRect.bottom+= db.GetH() - cRect.bottom;
+    wRect.right += scr_width - cRect.right;
+    wRect.bottom+= scr_height - cRect.bottom;
 
     wRect.right -= wRect.left;
     wRect.bottom -= wRect.top;
@@ -150,7 +150,7 @@ void sh_dwaw_win_cpu::show(bool Maximized) {
     wRect.left = (dRect.right  - wRect.right )>>1;
     wRect.top  = (dRect.bottom - wRect.bottom)>>1;
 
-    MoveWindow(hWnd, wRect.left, wRect.top, wRect.right, wRect.bottom, FALSE);
+    MoveWindow(hwnd, wRect.left, wRect.top, wRect.right, wRect.bottom, FALSE);
 
-    ShowWindow(hWnd, Maximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
+    ShowWindow(hwnd, Maximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
 }

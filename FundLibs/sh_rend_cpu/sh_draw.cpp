@@ -4,13 +4,9 @@ void sh_dwaw_win_cpu::dr_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b)
 void sh_dwaw_win_cpu::add_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b) { buf[index].r += r; buf[index].g += g; buf[index].b += b; }
 void sh_dwaw_win_cpu::mix_in_buf(uint32_t index, uint8_t r, uint8_t g, uint8_t b, uint8_t a) { buf[index].r = ((255 - a) * buf[index].r + r * a) * 0.00392156f; buf[index].g = ((255 - a) * buf[index].g + g * a) * 0.00392156f; buf[index].b = ((255 - a) * buf[index].g + g * a) * 0.00392156f; }
 void sh_dwaw_win_cpu::clip(int32_t& x, int32_t& y) {
-	x = (x < 0) ? 0 : ((x > w) ? w : x);
-	y = (y < 0) ? 0 : ((y > h) ? h : y);
+	x = (x < 0) ? 0 : ((x > dr_width) ? dr_width : x);
+	y = (y < 0) ? 0 : ((y > dr_height) ? dr_height : y);
 }
-
-uint8_t* sh_dwaw_win_cpu::get_buf() { return (uint8_t*)buf; }
-uint16_t sh_dwaw_win_cpu::get_w() { return w; }
-uint16_t sh_dwaw_win_cpu::get_h() { return h; }
 
 void sh_dwaw_win_cpu::fill_rect(int32_t x0, int32_t  y0, int32_t x1, int32_t y1, uint8_t r, uint8_t g, uint8_t b) {
 	clip(x0, y0); clip(x1, y1);
@@ -19,9 +15,9 @@ void sh_dwaw_win_cpu::fill_rect(int32_t x0, int32_t  y0, int32_t x1, int32_t y1,
 			draw_pix(x0 + x, y0 + y, r, g, b);
 }
 
-void sh_dwaw_win_cpu::draw_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < w && y >= 0 && y < h) dr_in_buf(y * w + x, r, g, b); }
-void sh_dwaw_win_cpu::add_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < w && y >= 0 && y < h) add_in_buf(y * w + x, r, g, b); }
-void sh_dwaw_win_cpu::mix_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) { if (x >= 0 && x < w && y >= 0 && y < h) mix_in_buf(y * w + x, r, g, b, a); }
+void sh_dwaw_win_cpu::draw_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < dr_width && y >= 0 && y < dr_height) dr_in_buf(y * dr_width + x, r, g, b); }
+void sh_dwaw_win_cpu::add_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) { if (x >= 0 && x < dr_width && y >= 0 && y < dr_height) add_in_buf(y * dr_width + x, r, g, b); }
+void sh_dwaw_win_cpu::mix_pix(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) { if (x >= 0 && x < dr_width && y >= 0 && y < dr_height) mix_in_buf(y * dr_width + x, r, g, b, a); }
 void sh_dwaw_win_cpu::draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t r, uint8_t g, uint8_t b) {
 	int32_t x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
 	dx = x1 - x0; dy = y1 - y0;

@@ -4,6 +4,29 @@
 #include <functional>
 #include"sprite.h"
 
+/*
+class MainRenderer : public sh_dwaw_win_cpu {
+	bool sh_init() {
+		AppName = L"CPURenderer";
+		return 1;
+	}
+	bool sh_loop(double dt) {
+		fill_circ(50, 50, 10, 20, 20, 240);
+		return 1;
+	}
+	bool sh_finit() {
+		return 1;
+	}
+};
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR sCmdLine, int iShow) {
+	MainRenderer simulation;
+	if (simulation.init(hInst, 256, 256, 512, 512))
+		simulation.run();
+	return 0;
+}
+*/
+
 typedef struct sh_dwaw_win_cpu {
 private:
 //draw//
@@ -73,7 +96,4 @@ public:
 	void draw_spt(int32_t x, int32_t y, int32_t w, int32_t h, sptRGB* spt);
 	void draw_spt_scaled(int32_t x, int32_t y, float scale, sptRGB* spt, std::function<bool(uint16_t, uint16_t)> a, float r, float g, float b);
 	void draw_spt(int32_t x, int32_t y, sptRGB* spt, std::function<bool(uint16_t, uint16_t)> a, float r, float g, float b);
-
-	void draw_spt(int32_t x, int32_t y, sptRGBA* spt);
-	void draw_spt(int32_t x, int32_t y, int32_t w, int32_t h, sptRGBA* spt);
 }ShWin;

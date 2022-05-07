@@ -67,4 +67,3 @@ public:
 
 typedef struct sprite<1> sptG;
 typedef struct sprite<3> sptRGB;
-typedef struct sprite<4> sptRGBA;
